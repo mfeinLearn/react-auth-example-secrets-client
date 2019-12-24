@@ -2,6 +2,7 @@ import React from 'react';
 import './App.css';
 import Secrets from './components/Secrets.js'
 import Login from "./components/Login"
+import Logout from "./components/Logout"
 
 class App extends React.Component {
   constructor(){
@@ -26,7 +27,16 @@ class App extends React.Component {
         }
       })
         .then(r => r.json())
-        .then(console.log)
+        .then(resp => {
+          if (resp.error) {
+            alert(resp.error)
+          } else {
+            this.setState({
+              currentUser: resp.user
+            })
+          }
+        })
+        .catch(console.log)
     }
   }
 
@@ -68,12 +78,25 @@ class App extends React.Component {
         } else {
           // success
           this.setState({
-            currentUser: resp.user
+            currentUser: resp.user, // set the current user
+            loginForm: {
+              email: "",
+              password: ""
+            }
           })
           localStorage.setItem('token', resp.jwt)
         }
       })
       .catch(console.log)
+  }
+
+  logout = event => {
+    event.preventDefault()
+    localStorage.removeItem("token")
+    this.setState({
+      currentUser: null,
+      secrets: []
+    })
   }
 
   getSecrets = () => {
@@ -108,12 +131,16 @@ class App extends React.Component {
           "Not logged in"
         }</h2>
 
-        <Login
-          handleLoginFormChange={this.handleLoginFormChange}
-          handleLoginFormSubmit={this.handleLoginFormSubmit}
-          email={this.state.loginForm.email}
-          password={this.state.loginForm.password}
-        />
+        {
+          this.state.currentUser ?
+            <Logout logout={this.logout}/> :
+            <Login
+            handleLoginFormChange={this.handleLoginFormChange}
+            handleLoginFormSubmit={this.handleLoginFormSubmit}
+            email={this.state.loginForm.email}
+            password={this.state.loginForm.password}
+          />
+        }
         <button onClick={this.getSecrets}>Show User's Secrets</button>
         <Secrets secrets={this.state.secrets}/>
       </div>
