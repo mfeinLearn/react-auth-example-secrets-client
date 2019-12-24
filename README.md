@@ -6,8 +6,8 @@
 - Review Rails auth
 - Identity the problem
 - Identity solutions
-- Define JWT - JSON Web Tokens
 - Define local storage
+- Define JWT - JSON Web Tokens
 - compare/contrast local storage and cookies
 - talk about some advantages/dangers using browser storage
 
@@ -38,4 +38,15 @@ User Login -> credentials -> authenticated -> session stores a unique ID -> stor
 
 First GOAL:
 
-1. Login and get a current user
+1. Login and get a current user DONE. but no persistence
+
+How to solve this issue??
+
+1. Login
+  - use bcrypt and `AR#authenticate` to authenticate the user
+2. Use JWT to generate a token
+3. Send that token back to the client
+4. Store that token in localStorage on the client side
+5. Include the token in subsequent requests from the client back to the server
+6. Build some helper methods to help us out
+7. To log out, we will simply clear the localStorage and reset any state around the current user

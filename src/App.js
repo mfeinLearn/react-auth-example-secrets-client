@@ -1,5 +1,6 @@
 import React from 'react';
 import './App.css';
+import Secrets from './components/Secrets.js'
 import Login from "./components/Login"
 
 class App extends React.Component {
@@ -10,7 +11,22 @@ class App extends React.Component {
       loginForm: {
         email: "",
         password: ""
-      }
+      },
+      secrets: []
+    }
+  }
+
+// can be /check_login_status or /auth
+  componentDidMount() {
+    const token = localStorage.getItem("token")
+    if (token) {
+      fetch("http://localhost:3001/get_current_user", {
+        headers: {
+          "Authorization": token
+        }
+      })
+        .then(r => r.json())
+        .then(console.log)
     }
   }
 
@@ -41,20 +57,45 @@ class App extends React.Component {
         user: userInfo
       })
     }
-    fetch("http://localhost:3000/login", headers)
+    fetch("http://localhost:3001/login", headers)
       .then(r => r.json())//need to call .json to turn this thing into something readable
-      .then(userJSON => {
+      .then(resp => {
         // userJSON -
-        if (userJSON.error) {
+        if (resp.error) {
           // failure
+          //debugger
           alert("invalid credentials")
         } else {
           // success
           this.setState({
-            currentUser: userJSON.user
+            currentUser: resp.user
           })
+          localStorage.setItem('token', resp.jwt)
         }
       })
+      .catch(console.log)
+  }
+
+  getSecrets = () => {
+    const token = localStorage.getItem("token")
+    fetch("http://localhost:3001/secrets", {
+      headers: {
+        "Authorization": token
+      }
+    })
+      .then(r => r.json())
+      .then(secrets => {
+        if (secrets.error) {
+          alert("Not authized for these secrets")
+        } else {
+          //success
+          this.setState({
+            //replace the existing array of secrets with this response
+            //.. which is also called secrets
+            secrets
+          })
+        }
+      }) // I want to grab that response from my secrets controller. An array of 2 objects
       .catch(console.log)
   }
 
@@ -66,12 +107,15 @@ class App extends React.Component {
           `Logged in as ${currentUser.name}` :
           "Not logged in"
         }</h2>
+
         <Login
           handleLoginFormChange={this.handleLoginFormChange}
           handleLoginFormSubmit={this.handleLoginFormSubmit}
           email={this.state.loginForm.email}
           password={this.state.loginForm.password}
         />
+        <button onClick={this.getSecrets}>Show User's Secrets</button>
+        <Secrets secrets={this.state.secrets}/>
       </div>
     );
   }
