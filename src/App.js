@@ -3,12 +3,13 @@ import './App.css';
 import Secrets from './components/Secrets.js'
 import Login from "./components/Login"
 import Logout from "./components/Logout"
+import { connect } from 'react-redux'
+import { getCurrentUser } from './actions/currentUser.js'
 
 class App extends React.Component {
   constructor(){
     super()
     this.state = {
-      currentUser: null,
       loginForm: {
         email: "",
         password: ""
@@ -19,26 +20,7 @@ class App extends React.Component {
 
 // can be /check_login_status or /auth
   componentDidMount() {
-
-      fetch("http://localhost:3001/get_current_user", {
-        // including credentials in the fetch request grabs stuff from the session in the browser and transport that back to the server
-        credentials: "include", // -> with every request that is coming back from the front end combined with credentials: true and origins 'localhost:3000'
-        headers: {
-          "Content-Type": "application/json"
-        }
-      })
-        .then(r => r.json())
-        .then(resp => {
-          if (resp.error) {
-            alert(resp.error)
-          } else {
-            this.setState({
-              currentUser: resp.user
-            })
-          }
-        })
-        .catch(console.log)
-
+    this.props.getCurrentUser()
   }
 
   handleLoginFormChange = event => {
@@ -135,7 +117,7 @@ class App extends React.Component {
   }
 
   render() {
-    const { currentUser } = this.state
+    const { currentUser } = this.props
     return (
       <div className="App">
         <h2>{ currentUser ?
@@ -144,7 +126,7 @@ class App extends React.Component {
         }</h2>
 
         {
-          this.state.currentUser ?
+          currentUser ?
             <Logout logout={this.logout}/> :
             <Login
             handleLoginFormChange={this.handleLoginFormChange}
@@ -160,7 +142,13 @@ class App extends React.Component {
   }
 }
 
-export default App;
+const mapStateToProps = ({ currentUser }) => {
+  return {
+    currentUser
+  }
+}
+
+export default connect(mapStateToProps, {getCurrentUser: getCurrentUser})(App);
 
 // Auth Lecture June 03 2019 ^^^ will come out as a string thanks to jsx
 // Q on Find:
