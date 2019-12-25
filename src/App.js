@@ -19,11 +19,12 @@ class App extends React.Component {
 
 // can be /check_login_status or /auth
   componentDidMount() {
-    const token = localStorage.getItem("token")
-    if (token) {
+
       fetch("http://localhost:3001/get_current_user", {
+        // including credentials in the fetch request grabs stuff from the session in the browser and transport that back to the server
+        credentials: "include", // -> with every request that is coming back from the front end combined with credentials: true and origins 'localhost:3000'
         headers: {
-          "Authorization": token
+          "Content-Type": "application/json"
         }
       })
         .then(r => r.json())
@@ -37,7 +38,7 @@ class App extends React.Component {
           }
         })
         .catch(console.log)
-    }
+
   }
 
   handleLoginFormChange = event => {
@@ -60,6 +61,9 @@ class App extends React.Component {
     const userInfo = this.state.loginForm
     const headers = {
       method: "POST",
+      // this is just VVV javascript's api for saying look in the browser for this stuff and include it in the response back and this stuff being the keys that hold the
+      //.. session data and all of that good stuff
+      credentials: "include",
       headers: {
         "Content-Type": "application/json"
       },
@@ -84,7 +88,6 @@ class App extends React.Component {
               password: ""
             }
           })
-          localStorage.setItem('token', resp.jwt)
         }
       })
       .catch(console.log)
@@ -92,7 +95,15 @@ class App extends React.Component {
 
   logout = event => {
     event.preventDefault()
-    localStorage.removeItem("token")
+    fetch("http://localhost:3001/logout", {
+      credentials: "include",
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json"
+      }
+    })
+      .then(r => r.json())
+      .then(resp => alert(resp.message))
     this.setState({
       currentUser: null,
       secrets: []
@@ -102,8 +113,9 @@ class App extends React.Component {
   getSecrets = () => {
     const token = localStorage.getItem("token")
     fetch("http://localhost:3001/secrets", {
+      credentials: "include",
       headers: {
-        "Authorization": token
+        "Content-Type": "application/json"
       }
     })
       .then(r => r.json())
